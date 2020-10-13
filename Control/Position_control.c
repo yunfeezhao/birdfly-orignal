@@ -1,41 +1,41 @@
 /******************** (C) COPYRIGHT 2015-2017 Xiluna Tech ************************
- * ×÷Õß   :Xiluna Tech
- * ÎÄ¼şÃû :Position_control.c
- * ÃèÊö   :Íâ»·¿ØÖÆº¯Êı
- * ¹ÙÍø   :http://xiluna.com/
- * ¹«ÖÚºÅ :XilunaTech
+ * ä½œè€…   :Xiluna Tech
+ * æ–‡ä»¶å :Position_control.c
+ * æè¿°   :å¤–ç¯æ§åˆ¶å‡½æ•°
+ * å®˜ç½‘   :http://xiluna.com/
+ * å…¬ä¼—å· :XilunaTech
 **********************************************************************************/
 #include "Position_control.h"
 
 void Position_control(unsigned char Data_flag,float Climb,float Decline){
-//    /************************ ½µÂä¿ØÖÆ  ************************/
-    static unsigned char hover= 0; //ĞüÍ£±êÖ¾Î»
-    static unsigned char controlCnt =0; //ÓÃÓÚ¿ØÖÆÖÜÆÚµÄ¼ÆÊı
-    static float TgtHeight = 0;   // Ä¿±ê¸ß¶È±äÁ¿
+//    /************************ é™è½æ§åˆ¶  ************************/
+    static unsigned char hover= 0; //æ‚¬åœæ ‡å¿—ä½
+    static unsigned char controlCnt =0; //ç”¨äºæ§åˆ¶å‘¨æœŸçš„è®¡æ•°
+    static float TgtHeight = 0;   // ç›®æ ‡é«˜åº¦å˜é‡
     static Vector3f_t DesiredAcceleration;
 
     UAVThrust.Gravity_Acceleration = 9.794f ;
-    controlCnt++; //¿ØÖÆÖÜÆÚ¼ÆÊı  ÄÚ»·Ã¿´Î¶¼×ö¿ØÖÆ£¬Íâ»·Á½´Î¿ØÖÆÖÜÆÚ×öÒ»´Î¿ØÖÆ
+    controlCnt++; //æ§åˆ¶å‘¨æœŸè®¡æ•°  å†…ç¯æ¯æ¬¡éƒ½åšæ§åˆ¶ï¼Œå¤–ç¯ä¸¤æ¬¡æ§åˆ¶å‘¨æœŸåšä¸€æ¬¡æ§åˆ¶
     if(FlightControl.landFlag==1 ){
-        //»ºÂı½µÂä
+        //ç¼“æ…¢é™è½
         TgtHeight = TgtHeight - Decline;
-        /************************¸ß¶È½µÂä¿ØÖÆ ************************/
+        /************************é«˜åº¦é™è½æ§åˆ¶ ************************/
         if(controlCnt ==2)
         {
-            //Íâ»·µ¥P¿ØÖÆÆ÷
+            //å¤–ç¯å•Pæ§åˆ¶å™¨
             float heightErro = TgtHeight - RT_Info.Height;
             OriginalPosZ.value = Limits_data( PID_ParaInfo.PosZ.Kp * heightErro , 1.0f ,-1.0f);
         }
-        //ËÙ¶È»·PID¿ØÖÆÆ÷
+        //é€Ÿåº¦ç¯PIDæ§åˆ¶å™¨
         OriginalVelZ.value = Limits_data(  PID_Control(&PID_ParaInfo.VelZ,&OriginalVelZ,-0.25f,RT_Info.Height_V,0.005,4) ,7,-7);
-        //¼ÓËÙ¶È»·PID¿ØÖÆÆ÷
+        //åŠ é€Ÿåº¦ç¯PIDæ§åˆ¶å™¨
         OriginalAccZ.value =  Limits_data(PID_Control(&PID_ParaInfo.AccZ,&OriginalAccZ,OriginalVelZ.value,RT_Info.accZaxis,0.005,7),10,-10);
 
-//              //¼ÓËÙ¶È»·PID¿ØÖÆÆ÷
+//              //åŠ é€Ÿåº¦ç¯PIDæ§åˆ¶å™¨
 //        OriginalVelZ.value = Limits_data(  PID_Control(&PID_ParaInfo.VelZ,&OriginalVelZ,OriginalPosZ.value,RT_Info.Height_V,0.005,1) ,2,-2);
 
 
-        /*4cmÒÔÏÂ µç»úµ¡ËÙ*/
+        /*4cmä»¥ä¸‹ ç”µæœºæ€ é€Ÿ*/
         if(RT_Info.Height<=0.04f){
             TgtHeight = 0;
             FlightControl.ControlStart = false;
@@ -44,22 +44,22 @@ void Position_control(unsigned char Data_flag,float Climb,float Decline){
             FlightControl.OnOff = Drone_Land;
             RT_Info.CpuTick=0;
             FlightControl.landFlag = 0;
-            Flight_Remote_Control.FlightControlMode =  VIOCruise;
+            Flight_Remote_Control.FlightControlMode =  VIOPosHold;
             FlightControl.ArmPower =    ArmPowerON;
         }
     }
     else{
-                /* ÊÖ±úÒ£¿Ø¸ß¶È¿ØÖÆÆ÷ */
+                /* æ‰‹æŸ„é¥æ§é«˜åº¦æ§åˆ¶å™¨ */
         if(RockerControl.ZaxisPos ==0)
         {
-            /* µÚÒ»´Î»Øµ½ĞüÍ£×´Ì¬£¬½«ÏÖÔÚµÄ¸ß¶ÈÉèÖÃÎªÄ¿±ê¸ß¶È */
+            /* ç¬¬ä¸€æ¬¡å›åˆ°æ‚¬åœçŠ¶æ€ï¼Œå°†ç°åœ¨çš„é«˜åº¦è®¾ç½®ä¸ºç›®æ ‡é«˜åº¦ */
             if(hover ==1 && abs(RT_Info.Height_V)<=0.05f )
             {
                 Target_Info.Height = RT_Info.Height ;
                 hover=0 ;
             }
-            /************************¸ß¶ÈĞüÍ£¿ØÖÆ ************************/
-            /* µÚÒ»´ÎÆğ·É»ºÂıÉÏÉı */
+            /************************é«˜åº¦æ‚¬åœæ§åˆ¶ ************************/
+            /* ç¬¬ä¸€æ¬¡èµ·é£ç¼“æ…¢ä¸Šå‡ */
             if(TgtHeight < Target_Info.Height && FlightControl.LaunchFlag == true){
                 TgtHeight = TgtHeight + Climb ;
                 }
@@ -79,30 +79,34 @@ void Position_control(unsigned char Data_flag,float Climb,float Decline){
                 }
 
                 FlightControl.LaunchFlag = false ;
+                //èµ·é£ç¨³å®šåå‘å³å…‰æµé£è¡Œ
+
+
+
             }
 
 
             if(controlCnt ==2)
             {
-                    //Íâ»·µ¥P¿ØÖÆÆ÷
+                    //å¤–ç¯å•Pæ§åˆ¶å™¨
                     float heightErro = TgtHeight - RT_Info.Height;
-                    OriginalPosZ.value = Limits_data( PID_ParaInfo.PosZ.Kp * heightErro ,1.5f ,-1.5f);  //¡À1m/sµÄÄ¿±êËÙ¶È
+                    OriginalPosZ.value = Limits_data( PID_ParaInfo.PosZ.Kp * heightErro ,1.5f ,-1.5f);  //Â±1m/sçš„ç›®æ ‡é€Ÿåº¦
             }
-                //ËÙ¶È»·PID¿ØÖÆÆ÷
+                //é€Ÿåº¦ç¯PIDæ§åˆ¶å™¨
             OriginalVelZ.value = Limits_data( PID_Control(&PID_ParaInfo.VelZ,&OriginalVelZ,OriginalPosZ.value,RT_Info.Height_V,0.005,4) ,7.0f,-7.0f);
-            //¼ÓËÙ¶È»·PID¿ØÖÆÆ÷
+            //åŠ é€Ÿåº¦ç¯PIDæ§åˆ¶å™¨
             OriginalAccZ.value =  Limits_data(PID_Control(&PID_ParaInfo.AccZ,&OriginalAccZ,OriginalVelZ.value,RT_Info.accZaxis,0.005,5),10.0f,-10.0f);
 
-//                      //¼ÓËÙ¶È»·PID¿ØÖÆÆ÷
+//                      //åŠ é€Ÿåº¦ç¯PIDæ§åˆ¶å™¨
 //                      OriginalAccZ.value =  Limits_data(PID_Control(&PID_ParaInfo.AccZ,&OriginalAccZ,0,RT_Info.accZaxis,0.005,3),6.0f,-6.0f);
         }
         else
         {
             OriginalVelZ.value = Limits_data(  PID_Control(&PID_ParaInfo.VelZ,&OriginalVelZ,RockerControl.ZaxisPos/100,RT_Info.Height_V,0.005,4) ,7.0f,-7.0f);
-            //¼ÓËÙ¶È»·PID¿ØÖÆÆ÷
+            //åŠ é€Ÿåº¦ç¯PIDæ§åˆ¶å™¨
             OriginalAccZ.value =  Limits_data(PID_Control(&PID_ParaInfo.AccZ,&OriginalAccZ,OriginalVelZ.value,RT_Info.accZaxis,0.005,5),10.0f,-10.0f);
 
-//                      //¼ÓËÙ¶È»·PID¿ØÖÆÆ÷
+//                      //åŠ é€Ÿåº¦ç¯PIDæ§åˆ¶å™¨
 //                      OriginalAccZ.value =  Limits_data(PID_Control(&PID_ParaInfo.AccZ,&OriginalAccZ,RockerControl.ZaxisPos/40,RT_Info.accZaxis,0.005,3),6.0f,-6.0f);
           hover =1;
         }
@@ -111,22 +115,22 @@ void Position_control(unsigned char Data_flag,float Climb,float Decline){
         UAVThrust.HeightThrust =  OriginalAccZ.value + UAVThrust.Gravity_Acceleration;
 //              UAVThrust.HeightThrust =  RockerControl.ZaxisPos/20.0f + UAVThrust.Gravity_Acceleration;
 
-    /************************ Î»ÖÃ»·ËÙ¶È¿ØÖÆÆ÷  ************************/
-    //Ö»ÓĞ·ÉĞĞÆ÷µÄ¸ß¶È´óÓÚ10cm²Å¿ªÊ¼½øĞĞÎ»ÖÃ¿ØÖÆ
+    /************************ ä½ç½®ç¯é€Ÿåº¦æ§åˆ¶å™¨  ************************/
+    //åªæœ‰é£è¡Œå™¨çš„é«˜åº¦å¤§äº10cmæ‰å¼€å§‹è¿›è¡Œä½ç½®æ§åˆ¶
     if(RT_Info.Height >= 0.00f){
         switch (Data_flag){
-            /************************ ÓĞÍ·Ä£Ê½£¨ÎŞ¶¨Î»£©  ************************/
+            /************************ æœ‰å¤´æ¨¡å¼ï¼ˆæ— å®šä½ï¼‰  ************************/
             case 0:
 //                Target_Info.Pitch = Target_Info.RemotePitch;
 //                Target_Info.Roll = Target_Info.RemoteRoll;
                   Target_Info.Pitch = RockerControl.XaxisPos /1.5f;
                   Target_Info.Roll =  RockerControl.YaxisPos /1.5f;
                 break;
-            /************************ ÎŞÍ·Ä£Ê½£¨ÎŞ¶¨Î»£©  ************************/
+            /************************ æ— å¤´æ¨¡å¼ï¼ˆæ— å®šä½ï¼‰  ************************/
             case 1:
 
                 break;
-            /************************ ¶¨µãÄ£Ê½  ************************/
+            /************************ å®šç‚¹æ¨¡å¼  ************************/
             case 2:
                 if(RockerControl.XaxisPos == 0  && RockerControl.YaxisPos == 0 &&
                                 Sensor_Info.Raspberry_Xaxis!=0 && Sensor_Info.Raspberry_Yaxis!=0)
@@ -155,7 +159,7 @@ void Position_control(unsigned char Data_flag,float Climb,float Decline){
                 }
                 break;
             case 3:
-            /************************ ¹âÁ÷¶¨µã ************************/
+            /************************ å…‰æµå®šç‚¹ ************************/
                 if( RockerControl.XaxisPos == 0 && RockerControl.YaxisPos == 0 &&
                            RT_Info.FlowX_V !=0 && RT_Info.FlowY_V !=0 )
                 {
@@ -208,23 +212,79 @@ void Position_control(unsigned char Data_flag,float Climb,float Decline){
                         FlightControl.setTargetPos = 0;
                 }
                 break;
-                        /************************ ÊÓ¾õÀï³Ì¼ÆÄ£Ê½  ************************/
+                        /************************ è§†è§‰é‡Œç¨‹è®¡æ¨¡å¼  ************************/
             case 4:
+                if(poleflag.finding==1&&FlightControl.LaunchFlag == false)
+                {
+                    Target_Info.RoutePlanX=0;
+                    Target_Info.RoutePlanY=3;
+                    Flight_Remote_Control.FlightControlMode = VIOCruise;
+                }
+                else if(poleflag.finding==0&&FlightControl.LaunchFlag == false&&poleflag.targetcyclenum!=0)
+                {
+                    if(poleflag.targetcyclenum==2){
+                        if(poleflag.isredybigger){
+                            Target_Info.RoutePlanX=0;
+                            Target_Info.RoutePlanY=poleflag.redyposy;
+
+                       }
+                        else{
+                            Target_Info.RoutePlanX=0;
+                            Target_Info.RoutePlanY=poleflag.greenposy;
+                        }
+                        if(RT_Info.VioPosition_Y>=Target_Info.RoutePlanY-10 && RT_Info.VioPosition_Y<=Target_Info.RoutePlanY+10){
+                             static int countred=0;
+                             ++countred;
+                             poleflag.targetcyclenum=(countred>=1000)?poleflag.targetcyclenum-1:poleflag.targetcyclenum;
+                        }
+                    }
+                    else if(poleflag.targetcyclenum==1){
+                        if(poleflag.isredybigger){
+                            Target_Info.RoutePlanX=0;
+                            Target_Info.RoutePlanY=poleflag.greenposy;
+
+                       }
+                        else{
+                            Target_Info.RoutePlanX=0;
+                            Target_Info.RoutePlanY=poleflag.redyposy;
+                        }
+                        if(RT_Info.VioPosition_Y>=Target_Info.RoutePlanY-10 && RT_Info.VioPosition_Y<=Target_Info.RoutePlanY+10){
+                             static int countred=0;
+                             ++countred;
+                             poleflag.targetcyclenum=(countred>=1000)?poleflag.targetcyclenum-1:poleflag.targetcyclenum;
+                        }
+                    }
+                }
+
+                else if(poleflag.targetcyclenum==0){
+                    FlightControl.landFlag=1;
+                    Flight_Remote_Control.FlightControlMode =VIOPosHold ;
+                }
+
+
+
+
+
+
+
+
+
                 if( RockerControl.XaxisPos == 0  && RockerControl.YaxisPos == 0 &&
                         RT_Info.VioPosition_X!=0 && RT_Info.VioPosition_Y!=0  &&   Flight_Remote_Control.FlightControlMode == VIOCruise )
                 {
+
                     float PosXerr =  Target_Info.RoutePlanX -  RT_Info.VioPosition_X;
                     float PosYerr =  Target_Info.RoutePlanY -  RT_Info.VioPosition_Y;
 
                     if( abs(Target_Info.RoutePlanZ - RT_Info.Height) >=0.1f )
                     {
-                        OriginalPosX.value = Limits_data( PID_ParaInfo.PosX.Kp * PosXerr,0.4f,-0.4f);
-                        OriginalPosY.value = Limits_data( PID_ParaInfo.PosY.Kp * PosYerr,0.4f,-0.4f);
+                        OriginalPosX.value = Limits_data( PID_ParaInfo.PosX.Kp * PosXerr,0.3f,-0.3f);
+                        OriginalPosY.value = Limits_data( PID_ParaInfo.PosY.Kp * PosYerr,0.3f,-0.3f);
                     }
                     else
                     {
-                        OriginalPosX.value = Limits_data( PID_ParaInfo.PosX.Kp * PosXerr,0.4f,-0.4f);
-                        OriginalPosY.value = Limits_data( PID_ParaInfo.PosY.Kp * PosYerr,0.4f,-0.4f);
+                        OriginalPosX.value = Limits_data( PID_ParaInfo.PosX.Kp * PosXerr,0.3f,-0.3f);
+                        OriginalPosY.value = Limits_data( PID_ParaInfo.PosY.Kp * PosYerr,0.3f,-0.3f);
                     }
 
                     Target_Info.DesiredAccelerationX = Limits_data( PID_Control(&PID_ParaInfo.FlowVelX,&OriginalFlowVelX,OriginalPosX.value,
@@ -234,10 +294,6 @@ void Position_control(unsigned char Data_flag,float Climb,float Decline){
                                                                                         RT_Info.FlowY_V,0.005f,1.5) ,6, -6 );
 
 
-//                                                  Target_Info.DesiredAccelerationX =  Limits_data( PID_Control(&PID_ParaInfo.VelX,&OriginalVelX,OriginalPosX.value,
-//                                                                                                                       RT_Info.VioVel_X,0.005f,1) , 6 , -6 );
-//                                                  Target_Info.DesiredAccelerationY  = Limits_data( PID_Control(&PID_ParaInfo.VelY,&OriginalVelY,OriginalPosY.value,
-//                                                                                                                       RT_Info.VioVel_Y,0.005f,1) , 6 , -6 );
 
                     DesiredAcceleration.x = Target_Info.DesiredAccelerationX;
                     DesiredAcceleration.y = Target_Info.DesiredAccelerationY;
@@ -272,10 +328,7 @@ void Position_control(unsigned char Data_flag,float Climb,float Decline){
                             }
 
                     }
-//                                              Target_Info.DesiredAccelerationX =  Limits_data( PID_Control(&PID_ParaInfo.VelX,&OriginalVelX,OriginalPosX.value,
-//                                                                                                                       RT_Info.VioVel_X,0.005f,1) , 6 , -6 );
-//                                              Target_Info.DesiredAccelerationY  = Limits_data( PID_Control(&PID_ParaInfo.VelY,&OriginalVelY,OriginalPosY.value,
-//                                                                                                                       RT_Info.VioVel_Y,0.005f,1) , 6 , -6 );
+
                     Target_Info.DesiredAccelerationX = Limits_data( PID_Control(&PID_ParaInfo.FlowVelX,&OriginalFlowVelX,OriginalPosX.value,
                                                                                          RT_Info.FlowX_V,0.005f,1.5) , 6, -6 ) ;
 
@@ -313,16 +366,16 @@ bool almostZero(float value){
 }
 
 /**********************************************************************************************************
-*º¯ Êı Ãû: ComputeRobustBodyXAxis
-*¹¦ÄÜËµÃ÷: ¼ÆËãbody×ø±êÏµ
-*ĞÎ    ²Î: ÎŞ
-*·µ »Ø Öµ: ÎŞ
+*å‡½ æ•° å: ComputeRobustBodyXAxis
+*åŠŸèƒ½è¯´æ˜: è®¡ç®—bodyåæ ‡ç³»
+*å½¢    å‚: æ— 
+*è¿” å› å€¼: æ— 
 **********************************************************************************************************/
 Vector3f_t ComputeRobustBodyXAxis(Vector3f_t x_B_prototype,Vector3f_t x_C,Vector3f_t y_C){
     Vector3f_t x_B = x_B_prototype;
     float x_BNorm = x_B.x * x_B.x + x_B.y * x_B.y + x_B.z * x_B.z;
     if(almostZero(x_BNorm)){
-        // Èôy_c ¡Á z_b == 0 ÔòËüÃÇ¹²Ïß ´ËÊ±ÊÇ´¹Ö±ÔË¶¯£¬Ôİ²»¿¼ÂÇ
+        // è‹¥y_c Ã— z_b == 0 åˆ™å®ƒä»¬å…±çº¿ æ­¤æ—¶æ˜¯å‚ç›´è¿åŠ¨ï¼Œæš‚ä¸è€ƒè™‘
         x_B.x = x_B.x / sqrtf(x_BNorm);
         x_B.y = x_B.y / sqrtf(x_BNorm);
         x_B.z = x_B.z / sqrtf(x_BNorm);
@@ -337,13 +390,13 @@ Vector3f_t ComputeRobustBodyXAxis(Vector3f_t x_B_prototype,Vector3f_t x_C,Vector
 
 
 /**********************************************************************************************************
-*º¯ Êı Ãû: ComputeDesiredAttitude
-*¹¦ÄÜËµÃ÷: ¼ÆËãÆÚÍû×ËÌ¬
-*ĞÎ    ²Î: ÎŞ
-*·µ »Ø Öµ: ÎŞ
+*å‡½ æ•° å: ComputeDesiredAttitude
+*åŠŸèƒ½è¯´æ˜: è®¡ç®—æœŸæœ›å§¿æ€
+*å½¢    å‚: æ— 
+*è¿” å› å€¼: æ— 
 **********************************************************************************************************/
 void ComputeDesiredAttitude(Vector3f_t DesiredAcceleration,float reference_heading){
-    //Èôº½Ïò²úÉúĞı×ª ÔòĞè¼ÆËã
+    //è‹¥èˆªå‘äº§ç”Ÿæ—‹è½¬ åˆ™éœ€è®¡ç®—
     float headingOrientation[9];
     headingOrientation[0] = cosf(reference_heading);
     headingOrientation[1] = -sinf(reference_heading);
@@ -357,7 +410,7 @@ void ComputeDesiredAttitude(Vector3f_t DesiredAcceleration,float reference_headi
     float UnitX[3] = {1,0,0};
     float UnitY[3] = {0,1,0};
     Vector3f_t X_C,Y_C;
-    //¼ÆËãÆÚÍû·½Ïò
+    //è®¡ç®—æœŸæœ›æ–¹å‘
     Matrix3_Mul_Matrix1(headingOrientation,UnitX,&X_C);
     Matrix3_Mul_Matrix1(headingOrientation,UnitY,&Y_C);
 
@@ -365,9 +418,9 @@ void ComputeDesiredAttitude(Vector3f_t DesiredAcceleration,float reference_headi
     float AccNorm = DesiredAcceleration.x * DesiredAcceleration.x
                                         + DesiredAcceleration.y * DesiredAcceleration.y
                                                 + DesiredAcceleration.z + DesiredAcceleration.z;
-    //×ÔÓÉÂäÌåÇé¿ö ¼ÓËÙ¼ÆÊ§È¥×÷ÓÃ
+    //è‡ªç”±è½ä½“æƒ…å†µ åŠ é€Ÿè®¡å¤±å»ä½œç”¨
     if(almostZero(AccNorm)){
-        /**´Ë´¦¼ÙÉè²»¿ÉÄÜ²úÉú×ÔÓÉÂäÌåÔË¶¯**/
+        /**æ­¤å¤„å‡è®¾ä¸å¯èƒ½äº§ç”Ÿè‡ªç”±è½ä½“è¿åŠ¨**/
         AccNorm = 0.05f;
         Z_B.x = DesiredAcceleration.x / sqrtf(AccNorm);
         Z_B.y = DesiredAcceleration.y / sqrtf(AccNorm);
@@ -379,11 +432,11 @@ void ComputeDesiredAttitude(Vector3f_t DesiredAcceleration,float reference_headi
     }
 /*
 
-    µ¥Î»ÏòÁ¿ a = a1*I + a2*J + a3*K   b = b1*I + b2*I2 + b3*I3
-    a¡Áb = (a2b3 - a3b2)I + (a3b1 - a1b3)J + (a1b2 - a2b1)K
+    å•ä½å‘é‡ a = a1*I + a2*J + a3*K   b = b1*I + b2*I2 + b3*I3
+    aÃ—b = (a2b3 - a3b2)I + (a3b1 - a1b3)J + (a1b2 - a2b1)K
 
                 a2b3 - a3b2
-    a¡Áb = a3b1 - a1b3
+    aÃ—b = a3b1 - a1b3
                 a1b2 - a2b1
 
 */
