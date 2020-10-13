@@ -5,7 +5,6 @@
  * 官网    ：http://xiluna.com/
  * 公众号  ：XilunaTech
  * gitlab ：git.xiluna.com
- * 已经修改
 *****************************************************************************/
 #include "task.h"
 
@@ -17,6 +16,7 @@ DroneFlightControl FlightControl;                                               
 RemoteControl RockerControl;                                                             //四旋翼摇杆变量
 Remote_Control  Flight_Remote_Control;                                                   //遥控器飞行设置
 RemoteSensing   Remote_Sensing;                                                          //外部控制信号设置
+Poleflag poleflag;//绕杆信息
 Controller Control_Info;                                                                 //遥控器控制全局变量
 SensorData Sensor_Info;                                                                  //四旋翼定位传感器数据
 FlyMode Fly_Mode;                                                                        //四旋翼飞行模式
@@ -333,6 +333,16 @@ static  void  App_TaskAttitude (void *p_arg){
             }
         }
         else{
+            poleflag.finding=1;
+            poleflag.greencycleflag=0;
+            poleflag.greenfindflag=0;
+            poleflag.greenposy=0;
+            poleflag.greentmp=480;
+            poleflag.redcycleflag=0;
+            poleflag.redfindflag=0;
+            poleflag.redyposy=480;
+            poleflag.targetcyclenum=2;
+
             PreparationFlag = true;
             PreparationPitch = 0;
             PreparationRoll = 0;
@@ -361,7 +371,7 @@ static  void  App_TaskAttitude (void *p_arg){
             FlightControl.LaunchFlag = true;
             RT_Info.VioAbnormal = false;
             RT_Info.VioHeartbeat =0;
-            Flight_Remote_Control.FlightControlMode = VIOCruise ;
+            Flight_Remote_Control.FlightControlMode = VIOPosHold ;
             Fly_Mode =  Data_Follow;
             FlightControl.landFlag =0;
             FlightControl.ControlStart = false;
@@ -519,7 +529,7 @@ static  void  App_TaskProcessVisionData (void *p_arg){
         OSSemPend (&ProcessVisionData_proc,0,&err);
 
         Process_VisionData(ReciveVisionData);
-    }
+     }
 }
 
 
